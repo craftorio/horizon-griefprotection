@@ -1,0 +1,7 @@
+#!/bin/sh
+# Rejects commit messages with a Co-authored-by trailer (see AGENTS.md: commits carry one author).
+# Enable once per clone: make hooks   (= git config core.hooksPath .githooks)
+if grep -v '^#' "$1" | grep -qi '^[[:space:]]*co-authored-by:'; then
+    echo "commit-msg: remove the Co-authored-by line — this repository does not use it (AGENTS.md)." >&2
+    exit 1
+fi

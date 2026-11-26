@@ -1,0 +1,69 @@
+# A tag v<version> (the version in horizon-mod.toml) builds the mod to WebAssembly against the craftorio/horizon
+# commit in HORIZON_COMMIT and publishes grief_protection.hmod on that tag's release. There is no published Horizon
+# SDK: the mod tool builds a wasm mod only inside a game checkout, so the mod is copied into the checkout's target/.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: gp
+
+      - name: The tag is the manifest's version
+        id: version
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' gp/horizon-mod.toml)
+          [[ "v$version" == "$GITHUB_REF_NAME" ]] || { echo "tag $GITHUB_REF_NAME, horizon-mod.toml says $version"; exit 1; }
+          echo "commit=$(cat gp/HORIZON_COMMIT)" >> "$GITHUB_OUTPUT"
+
+      - name: Horizon at the pinned commit
+        uses: actions/checkout@v4
+        with:
+          repository: craftorio/horizon
+          ref: ${{ steps.version.outputs.commit }}
+          ssh-key: ${{ secrets.HORIZON_DEPLOY_KEY }}
+          path: horizon
+          persist-credentials: false
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            horizon
+            horizon/target/craftorio-mods/grief_protection
+
+      - name: Checks
+        working-directory: gp
+        run: |
+          scripts/max-lines.sh
+          cargo fmt --check
+          cargo clippy --all-targets -- -D warnings
+          cargo test
+
+      - name: Build to WebAssembly
+        run: |
+          (cd horizon && cargo build --release --locked -p cargo-horizon-mod)
+          work=horizon/target/craftorio-mods/grief_protection
+          mkdir -p "$work"
+          # only what the package is made of: the mod tool refuses other files (README, rustfmt.toml, examples)
+          for part in Cargo.toml horizon-mod.toml src assets data; do
+            if [[ -e "gp/$part" ]]; then cp -R "gp/$part" "$work/"; fi
+          done
+          sed -i 's|path = "\.\./horizon/crates/horizon-mod-api"|path = "../../../crates/horizon-mod-api"|' "$work/Cargo.toml"
+          (cd "$work" && ../../release/cargo-horizon-mod horizon-mod build --wasm)
+          cp "$work/target/horizon-mod/grief_protection.hmod" .
+
+      - name: Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" grief_protection.hmod -R "$GITHUB_REPOSITORY" \
+            --title "Grief Protection $GITHUB_REF_NAME" --notes "Built against craftorio/horizon $(cat gp/HORIZON_COMMIT)."
