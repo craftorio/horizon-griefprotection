@@ -1,0 +1,15 @@
+schema: spec-driven
+
+# What the AI is told when it writes this project's artifacts.
+context: |
+  Grief Protection: a Horizon server mod in Rust (WebAssembly) inspired by GriefPrevention: land claims, trust levels, claim blocks, protection of building, containers, doors and animals.
+  Read AGENTS.md first: its rules hold for the artifacts too.
+  Write every artifact (proposal, design, specs, tasks) in Simplified English, in the spirit of ASD-STE100:
+  short sentences, one idea in each, common words, one word for one thing, active voice, no idioms.
+
+rules:
+  proposal:
+    - When the owner decided something, say so with the date ("the owner's decision, 2026-11-27").
+    - Include a "Non-goals" section.
+  tasks:
+    - End with the checks of AGENTS.md, and how the change is shipped and checked (in game, on the dev server).

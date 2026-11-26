@@ -40,3 +40,19 @@ a release is a tag `v<version>`. The package holds only `Cargo.toml`, `horizon-m
 - Checks before finishing: `make check`. `make hooks` once per clone: `pre-commit` runs the checks,
   `commit-msg` rejects a `Co-authored-by` trailer.
 - Commit only when asked. Never add `Co-Authored-By` (or any other AI attribution line) to commit messages.
+
+## Work by OpenSpec
+
+Make changes through [OpenSpec](https://github.com/Fission-AI/OpenSpec) where you can (the owner's rule,
+2026-11-27):
+
+- A change of behaviour starts as an OpenSpec change in `openspec/changes/<change-id>/`: `proposal.md` (why, what,
+  non-goals), `design.md` when the how needs a decision, `tasks.md`, and the spec deltas (`/opsx:propose`, or
+  `openspec change` and the files by hand). Agree the proposal with the owner before the code.
+- Do the work by its tasks (`/opsx:apply`), and tick each task when it is done.
+- When the change is shipped, archive it (`/opsx:archive`): its spec deltas go into `openspec/specs/`, which says
+  what the project does now.
+- `openspec validate --strict` before a commit of a change.
+- A small fix (a typo, a one-line bug, a version bump) needs no change.
+- `openspec/` and `.claude/` (the `/opsx` commands, made by `openspec init --tools claude`) are committed; only
+  `.claude/settings.local.json` stays local.
