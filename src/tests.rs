@@ -194,3 +194,66 @@ fn claim_without_a_radius_is_the_smallest_square_allowed() {
     assert_eq!(default_radius(5, 25), 2, "side 5");
     assert_eq!(default_radius(8, 10), 4, "side 9");
 }
+
+mod bodies {
+    use crate::body::{Open, open, owner};
+
+    const MANNEQUIN: &str = "minecraft:mannequin";
+    const STEVE: u128 = 0x1234_5678_9abc_def0_1234_5678_9abc_def0;
+    const BOB: u128 = 7;
+
+    /// The tags that Knockout gives the body of Steve, and `more`.
+    fn tags(more: &[&str]) -> Vec<String> {
+        let mut tags = vec![
+            "knockout_body".to_owned(),
+            "knockout_body_3".to_owned(),
+            format!("knockout_owner_{STEVE:032x}"),
+        ];
+        tags.extend(more.iter().map(|t| (*t).to_owned()));
+        tags
+    }
+
+    #[test]
+    fn the_owner_opens_the_body() {
+        assert_eq!(owner(&tags(&[])), Some(STEVE));
+        assert_eq!(open(MANNEQUIN, &tags(&[]), STEVE), Open::Anyone);
+    }
+
+    #[test]
+    fn another_player_needs_container_trust() {
+        assert_eq!(open(MANNEQUIN, &tags(&[]), BOB), Open::NeedsTrust);
+    }
+
+    #[test]
+    fn the_owner_tag_in_capitals_names_the_owner() {
+        let tags = vec!["knockout_body".to_owned(), format!("knockout_owner_{STEVE:032X}")];
+        assert_eq!(open(MANNEQUIN, &tags, STEVE), Open::Anyone);
+    }
+
+    #[test]
+    fn a_body_without_an_owner_needs_container_trust() {
+        let tags = vec!["knockout_body".to_owned(), "knockout_owner_xyz".to_owned()];
+        assert_eq!(owner(&tags), None);
+        assert_eq!(open(MANNEQUIN, &tags, STEVE), Open::NeedsTrust);
+    }
+
+    #[test]
+    fn a_skeleton_body_opens_for_everybody() {
+        assert_eq!(open("minecraft:skeleton", &tags(&[]), BOB), Open::Anyone);
+        assert_eq!(open(MANNEQUIN, &tags(&["knockout_skeleton"]), BOB), Open::Anyone);
+        assert_eq!(
+            open("minecraft:skeleton", &["knockout_skeleton".to_owned()], BOB),
+            Open::Anyone
+        );
+    }
+
+    #[test]
+    fn other_entities_are_not_bodies() {
+        assert_eq!(open(MANNEQUIN, &[], BOB), Open::NotBody);
+        assert_eq!(open("minecraft:skeleton", &[], BOB), Open::NotBody);
+        assert_eq!(
+            open("minecraft:cow", &["knockout_body_3".to_owned()], BOB),
+            Open::NotBody
+        );
+    }
+}

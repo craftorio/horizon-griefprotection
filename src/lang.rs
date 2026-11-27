@@ -54,6 +54,10 @@ messages! {
         "This land is claimed by {owner}. They have not trusted you here.",
         "Эта земля — приват игрока {owner}. Он не дал вам здесь доступа.",
         "Ця земля — приват гравця {owner}. Він не дав вам тут доступу.";
+    NotYourBody:
+        "This body is not yours. This land is claimed by {owner}.",
+        "Это не ваше тело. Эта земля — приват игрока {owner}.",
+        "Це не ваше тіло. Ця земля — приват гравця {owner}.";
     OwnedBy:
         "This land is claimed by {owner}.",
         "Эта земля — приват игрока {owner}.",
@@ -218,8 +222,10 @@ impl Key {
     pub fn kind(self) -> Kind {
         use Key::*;
         match self {
-            NotTrusted | Overlaps | TooSmall | NotEnoughBlocks | NotInClaim | OnlyOwnerRemoves | NoClaims
-            | UnknownPlayer | NeedManager | OnlyOwnerManager | PlayersOnly | ConfirmAbandonAll => Kind::Refusal,
+            NotTrusted | NotYourBody | Overlaps | TooSmall | NotEnoughBlocks | NotInClaim | OnlyOwnerRemoves
+            | NoClaims | UnknownPlayer | NeedManager | OnlyOwnerManager | PlayersOnly | ConfirmAbandonAll => {
+                Kind::Refusal
+            }
             Claimed | Resized | Abandoned | AbandonedAll | Trusted | Untrusted | BonusSet => Kind::Done,
             _ => Kind::Info,
         }

@@ -3,8 +3,9 @@
 //! build, open containers, use doors and buttons, or hurt animals. Fluids, fire, pistons, explosions and mobs do not
 //! change a claim from outside.
 //!
-//! The rules are in `claims`, `outside` and `tool` (tested without the game); `game` is the hooks' way to them.
+//! The rules are in `claims`, `body`, `outside` and `tool` (tested without the game); `game` is the hooks' way to them.
 
+pub mod body;
 pub mod claims;
 pub mod config;
 mod game;

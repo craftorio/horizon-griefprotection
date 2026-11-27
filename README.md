@@ -27,6 +27,20 @@ The owner trusts other players, each at a level. Each level allows what the leve
 An admin (an operator of level 2 or more; later the LitePerms permission `griefprotection.admin`) can do
 everything in every claim. Monsters and players can be hit everywhere.
 
+## Bodies of Knockout
+
+[Knockout](https://github.com/craftorio/horizon-knockout) leaves a body with the items of a player who dies. A body
+is an entity with the tag `knockout_body`. Its tag `knockout_owner_<uuid>` names its owner. A right click opens it.
+
+- In a claim, only the owner of the body, the players with container trust and admins open it. Other players are
+  refused, and their action bar says why.
+- Outside claims, everybody opens a body.
+- A skeleton body (after an hour) opens for everybody, everywhere: the tag `knockout_skeleton`, or a body entity of
+  the type `minecraft:skeleton`.
+
+Grief Protection decides at the listener priority 0, before Knockout (-100). When Grief Protection refuses the
+click, Knockout does not open the body.
+
 ## Making claims
 
 - **The golden shovel.** Right-click a block: the first corner. Right-click the opposite corner: the claim. To

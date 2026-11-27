@@ -14,6 +14,8 @@ No Rust file is longer than 400 lines (`scripts/max-lines.sh`, part of `make che
 - `src/tool.rs`: the golden shovel's states and clicks, and the columns of a border, without the game.
 - `src/outside.rs`: what may come into a claim from outside (fluids, fire, pistons, explosions, mobs), without the
   game. `src/tests.rs` tests both.
+- `src/body.rs`: who may open a body of Knockout (`craftorio/horizon-knockout`), from the entity's tags and type,
+  without the game. `src/tests.rs` tests it. The tag names are Knockout's (its `src/game/bodies.rs`).
 - `src/lang.rs`: the messages in en, ru and uk.
 - `src/kind.rs`: what a right click on a block is (access or container).
 - `src/store.rs`: `claims.json` in the world's data folder (format version 2; reads 1).

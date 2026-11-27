@@ -3,20 +3,22 @@
 //! action bar.
 
 use super::{action_bar, admin, name_of, with};
+use crate::body::Open;
 use crate::claims::rules::{Action, allowed};
 use crate::lang::Key;
 use mod_api::{Flow, HostBlockStates, ServerHost};
 
 /// Whether `player` may not do `action` at `pos` in the dimension they are in; tells them so.
 pub fn refused(host: &mut dyn ServerHost, player: u128, pos: [i32; 3], action: Action) -> bool {
+    refused_saying(host, player, pos, action, Key::NotTrusted)
+}
+
+/// As [`refused`], with the message `key` (it has the place `{owner}`).
+fn refused_saying(host: &mut dyn ServerHost, player: u128, pos: [i32; 3], action: Action, key: Key) -> bool {
     let Some(dimension) = super::dimension_of(host, player) else {
         return false;
     };
-    refused_in(host, player, &dimension, pos, action)
-}
-
-/// Whether `player` may not do `action` at `pos` of `dimension`; tells them so.
-pub fn refused_in(host: &mut dyn ServerHost, player: u128, dimension: &str, pos: [i32; 3], action: Action) -> bool {
+    let dimension = dimension.as_str();
     let is_admin = admin(host, player);
     let owner = with(|state| {
         let claim = state.claims(host).at(dimension, pos[0], pos[2])?;
@@ -28,7 +30,7 @@ pub fn refused_in(host: &mut dyn ServerHost, player: u128, dimension: &str, pos:
         return false;
     };
     let name = name_of(host, owner);
-    action_bar(host, player, Key::NotTrusted, &[("owner", &name)]);
+    action_bar(host, player, key, &[("owner", &name)]);
     true
 }
 
@@ -88,15 +90,29 @@ pub fn refuse_hit(host: &mut dyn ServerHost, kind: &str, pos: [f64; 3], cancelle
 }
 
 /// `entity_interact`, `entity_interact_specific`: the acting player uses the entity `entity` (an animal, an item
-/// frame, an armor stand, a villager...). Monsters and players may be used anywhere.
+/// frame, an armor stand, a villager, a body of Knockout...). Monsters and players may be used anywhere. A body
+/// follows the rule of `crate::body`, not the rule of its entity type.
 pub fn refuse_use(host: &mut dyn ServerHost, player: u128, entity: i32, kind: &str) -> bool {
-    if kind == "minecraft:player" || host.entity_type_is_enemy(kind) {
-        return false;
-    }
-    let Some(pos) = host.entity(entity as u32).and_then(|e| e.block_position(host)) else {
+    let Some(entity) = host.entity(entity as u32) else {
         return false;
     };
-    refused(host, player, pos, Action::Container)
+    let tags = entity.tags(&*host).unwrap_or_default();
+    let body = crate::body::open(kind, &tags, player);
+    if body == Open::Anyone {
+        return false;
+    }
+    if body == Open::NotBody && (kind == "minecraft:player" || host.entity_type_is_enemy(kind)) {
+        return false;
+    }
+    let Some(pos) = entity.block_position(host) else {
+        return false;
+    };
+    let key = if body == Open::NeedsTrust {
+        Key::NotYourBody
+    } else {
+        Key::NotTrusted
+    };
+    refused_saying(host, player, pos, Action::Container, key)
 }
 
 /// `bucket_empty`, `fill_bucket`, `block_ignite` by a player, `farmland_trample` by a player: build trust.
