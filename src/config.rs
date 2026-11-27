@@ -8,7 +8,7 @@ pub const DEFAULT: &str = r#"# Grief Protection: land claims. A claim covers who
 
 # The claim blocks a new player has, how many they get for each hour played, and the most they get by playing
 # (an admin can give more).
-initial_blocks = 100
+initial_blocks = 600
 blocks_per_hour = 100
 max_blocks = 80000
 # The smallest claim: this many blocks on each side, and this many columns.
@@ -26,6 +26,15 @@ pub struct Settings {
 }
 
 impl Settings {
+    /// The default settings, as a constant (the mod's state starts with them, before the file is read).
+    pub const FALLBACK: Settings = Settings {
+        initial_blocks: 600,
+        blocks_per_hour: 100,
+        max_blocks: 80000,
+        min_width: 5,
+        min_area: 100,
+    };
+
     pub fn parse(text: &str) -> Result<Self, String> {
         toml::from_str(text).map_err(|e: toml::de::Error| e.to_string())
     }
@@ -33,6 +42,6 @@ impl Settings {
 
 impl Default for Settings {
     fn default() -> Self {
-        Settings::parse(DEFAULT).expect("the default settings parse")
+        Settings::FALLBACK
     }
 }

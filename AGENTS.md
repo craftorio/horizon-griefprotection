@@ -1,29 +1,31 @@
 # AGENTS.md
 
 Grief Protection (`grief_protection`): land claims for Horizon servers (Minecraft 26.3 in Rust, our fork
-`craftorio/horizon`), inspired by GriefPrevention. A WebAssembly server mod (`side = "server"`). It is a draft.
+`craftorio/horizon`), inspired by GriefPrevention. A WebAssembly server mod (`side = "server"`).
 
 ## Layout
 
 No Rust file is longer than 400 lines (`scripts/max-lines.sh`, part of `make check`).
 
 - `src/claims/`: the claims and their rules, without the game: `mod.rs` (a claim, the trust levels),
-  `index.rs` (all claims with an index by chunk; adding refuses overlaps, small claims and missing claim blocks),
-  `rules.rs` (who may do what), `blocks.rs` (the claim blocks a player earned). Tested in `tests.rs`.
+  `index.rs` (all claims with an index by chunk, the bonus claim blocks; adding and resizing refuse overlaps,
+  small claims and missing claim blocks), `rules.rs` (who may do what), `blocks.rs` (the claim blocks a player
+  earned, the play time from the statistics). Tested in `tests.rs`.
+- `src/tool.rs`: the golden shovel's states and clicks, and the columns of a border, without the game.
+- `src/outside.rs`: what may come into a claim from outside (fluids, fire, pistons, explosions, mobs), without the
+  game. `src/tests.rs` tests both.
+- `src/lang.rs`: the messages in en, ru and uk.
 - `src/kind.rs`: what a right click on a block is (access or container).
-- `src/store.rs`: `claims.json` in the world's data folder (format version 1).
+- `src/store.rs`: `claims.json` in the world's data folder (format version 2; reads 1).
 - `src/config.rs`: `grief_protection.toml`.
-- `src/game.rs`: the hooks' way to the rules (the claims of the world in place, the acting player, the refusal
-  on the action bar). `src/lib.rs`: the hooks only.
+- `src/game/`: the hooks' way to the rules. `mod.rs` (the state: claims, settings, each player's language, tool,
+  borders), `protect.rs` (players in a claim), `outside.rs` (the hooks of `crate::outside`), `shovel.rs` (the
+  claim tool), `borders.rs` (`show_block`), `commands.rs`. `src/lib.rs`: the hooks only.
 
 ## Next
 
-1. Read `grief_protection.toml` (`register_configs`, `config_loading`).
-2. Commands: `/claim [radius]`, `/abandonclaim`, `/trust`, `/containertrust`, `/accesstrust`,
-   `/permissiontrust`, `/untrust`, `/claimslist`, `/adjustbonusclaimblocks` (admins).
-3. The claim tool (a golden shovel: two corners), and showing a claim's corners.
-4. The admin permission from LitePerms (`craftorio/horizon-liteperms`) when the two can link.
-5. Fluids, fire, pistons and explosions that enter a claim from outside.
+1. The admin permission from LitePerms (`craftorio/horizon-liteperms`) when the two can link.
+2. The limits of the hooks in the README ("Limits of the Horizon hooks"), if Horizon adds what they need.
 
 ## Building and shipping
 

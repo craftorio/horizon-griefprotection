@@ -17,12 +17,21 @@ const ACCESS_IDS: &[&str] = &[
     "minecraft:bell",
     "minecraft:note_block",
     "minecraft:jukebox",
+    // a click changes a redstone circuit: the delay of a repeater, the shape of redstone wire
+    "minecraft:repeater",
+    "minecraft:redstone_wire",
 ];
+/// Blocks with no block entity that still hold or give something: what a click on them takes or puts is the
+/// owner's.
+const CONTAINER_IDS: &[&str] = &["minecraft:composter", "minecraft:flower_pot", "minecraft:cake"];
 
 /// The action a right click on block `id` is; `has_contents`: it has a block entity.
 pub fn click(id: &str, has_contents: bool) -> Option<Action> {
     if ACCESS.iter().any(|end| id.ends_with(end)) || ACCESS_IDS.contains(&id) {
         return Some(Action::Access);
+    }
+    if CONTAINER_IDS.contains(&id) || id.starts_with("minecraft:potted_") || id.ends_with("candle_cake") {
+        return Some(Action::Container);
     }
     // a sign, a lectern or a chest: what it holds can be read or taken
     has_contents.then_some(Action::Container)
