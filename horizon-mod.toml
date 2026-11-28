@@ -1,6 +1,7 @@
 id = "grief_protection"
 name = "Grief Protection"
 version = "0.3.0"
+authors = ["Craftorio"]
 license = "MIT"
 description = "Land claims for Horizon servers, inspired by GriefPrevention: a player claims land with /claim or a golden shovel, and only the players they trust can build, open containers or use doors there. Fluids, fire, pistons, explosions and mobs do not change a claim from outside."
 api = "0.2"
